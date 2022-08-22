@@ -3,36 +3,59 @@ import altair as alt
 import math
 import pandas as pd
 import streamlit as st
+import pandas as pd
+from pandas import ExcelWriter
+from pandas import ExcelFile
+import numpy as np
+import plotly
+import plotly.express as px
+import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+import calendar
+import pyecharts
+from pyecharts import options as opts
+from pyecharts.charts import Bar,Calendar, Tab
+import streamlit as st
 
-"""
-# Welcome to Streamlit!
+st.set_page_config(page_title="FINANCIAL",
+                   page_icon=":wink:",
+                   layout="wide"
+)
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:
+#df=pd.read_excel("Book2.xlsx",sheet_name='Book1')
 
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
-
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+#df1 - arkusz 2 dotyczacy planera rozdysponowania miesiecznych zarobkow
+df1=pd.read_excel("Book2.xlsx",sheet_name='Book2')
 
 
-with st.echo(code_location='below'):
-    total_points = st.slider("Number of points in spiral", 1, 5000, 2000)
-    num_turns = st.slider("Number of turns in spiral", 1, 100, 9)
+#wykres treemap dla ostatniego miesiaca
+dftree= df1[df1.Month == "08 August"]
+#filtrowanie po pieniądzach
+sales=dftree['Money']
+ax2= px.treemap(dftree,path=['Account'],values=sales,title="Stan Kont Bankowych Dla Ostatniego Miesiąca:")
+#ax2.show()
 
-    Point = namedtuple('Point', 'x y')
-    data = []
+#wykres dla dwoch slupkow (nie dokończony)
+#model_trans2=df1
+#model_fuel2= model_trans2.groupby('Month')
+#model_trans2 = model_trans2[model_trans2.Account == "Mbank"]
+#model_trans2.plot(kind = 'bar', label = 'Wakajki', figsize = (4, 4))
+#plt.xlabel('Month', fontsize = 16)
+#plt.ylabel('Money', fontsize = 16)
+#plt.show()
 
-    points_per_turn = total_points / num_turns
+#wykres dla pojedynczych celow slupkowy (dziala)
+cel_auto=df1[df1.Account == "Auto"]
+cel_auto_mies= cel_auto.groupby('Month')['Money'].sum()
+cel_auto_mies= pd.DataFrame(cel_auto_mies)
+cel_auto_mies.columns = ['Money']
+cel_auto_mies.sort_values(by=['Month'], inplace=True, ascending=True)
+#usuwanie numerkow przed miesiacem
+cel_auto_mies.index = [x.split()[1] for x in cel_auto_mies.index]
+cel_auto_mies.index = cel_auto_mies.index.str.capitalize()
+cel_auto_mies.plot(kind = 'bar', label = 'Wakajki', figsize = (4, 4))
+plt.xlabel('Month', fontsize = 16)
+plt.ylabel('Money', fontsize = 16)
+#plt.show()
 
-    for curr_point_num in range(total_points):
-        curr_turn, i = divmod(curr_point_num, points_per_turn)
-        angle = (curr_turn + 1) * 2 * math.pi * i / points_per_turn
-        radius = curr_point_num / total_points
-        x = radius * math.cos(angle)
-        y = radius * math.sin(angle)
-        data.append(Point(x, y))
-
-    st.altair_chart(alt.Chart(pd.DataFrame(data), height=500, width=500)
-        .mark_circle(color='#0068c9', opacity=0.5)
-        .encode(x='x:Q', y='y:Q'))
+#proba donut diagram (test)
